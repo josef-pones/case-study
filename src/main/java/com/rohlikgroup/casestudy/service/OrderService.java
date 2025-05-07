@@ -1,8 +1,9 @@
 package com.rohlikgroup.casestudy.service;
 
-import com.rohlikgroup.casestudy.dto.OrderDto;
-import com.rohlikgroup.casestudy.dto.CreateOrderRequest;
 import org.springframework.stereotype.Service;
+
+import com.rohlikgroup.casestudy.dto.CreateOrderRequest;
+import com.rohlikgroup.casestudy.dto.OrderDto;
 
 @Service
 public interface OrderService {

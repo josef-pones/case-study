@@ -1,0 +1,96 @@
+package com.rohlikgroup.casestudy.service.impl;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import com.rohlikgroup.casestudy.dto.CreateOrderRequest;
+import com.rohlikgroup.casestudy.dto.OrderDto;
+import com.rohlikgroup.casestudy.dto.OrderItemRequest;
+import com.rohlikgroup.casestudy.entity.Order;
+import com.rohlikgroup.casestudy.entity.Product;
+import com.rohlikgroup.casestudy.repository.OrderRepository;
+import com.rohlikgroup.casestudy.repository.ProductRepository;
+
+import jakarta.persistence.EntityNotFoundException;
+
+@ExtendWith(MockitoExtension.class)
+class OrderServiceImplTest {
+
+    @Mock
+    private OrderRepository orderRepository;
+
+    @Mock
+    private ProductRepository productRepository;
+
+    @InjectMocks
+    private OrderServiceImpl orderService;
+
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    void testCreateOrder_Success() {
+        CreateOrderRequest orderRequest = new CreateOrderRequest(List.of(
+            new OrderItemRequest(1L, 2)
+        ));
+        Product product = new Product();
+        product.setId(1L);
+        product.setStockAmount(10);
+        product.setName("Test Product");
+
+        Order order = new Order();
+
+        when(productRepository.findById(anyLong())).thenReturn(Optional.of(product));
+        when(orderRepository.save(any(Order.class))).thenReturn(order);
+
+        OrderDto result = orderService.createOrder(orderRequest);
+
+        assertNotNull(result);
+        verify(productRepository).save(product);
+        assertEquals(8, product.getStockAmount());
+    }
+
+    @Test
+    void testCreateOrder_ProductNotFound() {
+        CreateOrderRequest orderRequest = new CreateOrderRequest(List.of(
+            new OrderItemRequest(1L, 2)
+        ));
+
+        when(productRepository.findById(1L)).thenReturn(Optional.empty());
+
+        assertThrows(EntityNotFoundException.class, () -> orderService.createOrder(orderRequest));
+    }
+
+    @Test
+    void testCreateOrder_NotEnoughStock() {
+        CreateOrderRequest orderRequest = new CreateOrderRequest(List.of(
+            new OrderItemRequest(1L, 20)
+        ));
+        Product product = new Product();
+        product.setId(1L);
+        product.setStockAmount(10);
+        product.setName("Test Product");
+
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+
+        assertThrows(IllegalStateException.class, () -> orderService.createOrder(orderRequest));
+    }
+}

@@ -1,14 +1,17 @@
 package com.rohlikgroup.casestudy.controller;
 
-import com.rohlikgroup.casestudy.dto.OrderDto;
-import com.rohlikgroup.casestudy.service.OrderService;
-import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.rohlikgroup.casestudy.dto.CreateOrderRequest;
+import com.rohlikgroup.casestudy.dto.OrderDto;
+import com.rohlikgroup.casestudy.service.OrderService;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequestMapping("/orders")
@@ -27,5 +30,11 @@ public class OrderController {
     public ResponseEntity<OrderDto> payOrder(@PathVariable Long id) {
         var paidOrder = orderService.setOrderPaid(id);
         return ResponseEntity.ok(paidOrder);
+    }
+
+    @PostMapping("/createOrder")
+    public ResponseEntity<OrderDto> createOrder(@RequestParam CreateOrderRequest orderRequest) {
+        OrderDto order = orderService.createOrder(orderRequest);
+        return ResponseEntity.accepted().body(order);
     }
 }

@@ -1,7 +1,13 @@
 package com.rohlikgroup.casestudy.service.impl;
 
+import java.time.LocalDateTime;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.rohlikgroup.casestudy.dto.CreateOrderRequest;
 import com.rohlikgroup.casestudy.dto.OrderDto;
+import com.rohlikgroup.casestudy.dto.OrderItemRequest;
 import com.rohlikgroup.casestudy.entity.Order;
 import com.rohlikgroup.casestudy.entity.OrderItem;
 import com.rohlikgroup.casestudy.entity.OrderStatus;
@@ -9,12 +15,9 @@ import com.rohlikgroup.casestudy.mapper.OrderMapper;
 import com.rohlikgroup.casestudy.repository.OrderRepository;
 import com.rohlikgroup.casestudy.repository.ProductRepository;
 import com.rohlikgroup.casestudy.service.OrderService;
+
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -24,13 +27,38 @@ public class OrderServiceImpl implements OrderService {
     private final ProductRepository productRepository;
     private final OrderMapper orderMapper;
 
-
     @Override
     @Transactional
     public OrderDto createOrder(CreateOrderRequest orderRequest) {
-        //TODO: implement here
+        Order order = new Order();
+        order.setStatus(OrderStatus.PENDING);
+        order.setCreatedAt(LocalDateTime.now());
 
-        return null;
+        orderRequest.orderItems().forEach(item -> {
+            orderProduct(order, item);
+        });
+        orderRepository.save(order);
+        return orderMapper.map(order);
+    }
+
+    private void orderProduct(Order order, OrderItemRequest item) {
+        var product = productRepository
+                .findById(item.productId())
+                .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + item.productId()));
+
+        if (product.getStockAmount() < item.quantity()) {
+            throw new IllegalStateException("Not enough stock for product: " + product.getName());
+        }
+
+        product.setStockAmount(product.getStockAmount() - item.quantity());
+        productRepository.save(product);
+
+        OrderItem orderItem = new OrderItem();
+        orderItem.setProduct(product);
+        orderItem.setQuantity(item.quantity());
+
+        order.getOrderItems().add(orderItem);
+        orderItem.setOrder(order);
     }
 
     @Override
