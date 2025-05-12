@@ -11,6 +11,7 @@ import com.rohlikgroup.casestudy.dto.OrderItemRequest;
 import com.rohlikgroup.casestudy.entity.Order;
 import com.rohlikgroup.casestudy.entity.OrderItem;
 import com.rohlikgroup.casestudy.entity.OrderStatus;
+import com.rohlikgroup.casestudy.exception.InsufficientStockException;
 import com.rohlikgroup.casestudy.mapper.OrderMapper;
 import com.rohlikgroup.casestudy.repository.OrderRepository;
 import com.rohlikgroup.casestudy.repository.ProductRepository;
@@ -47,7 +48,7 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + item.productId()));
 
         if (product.getStockAmount() < item.quantity()) {
-            throw new IllegalStateException("Not enough stock for product: " + product.getName());
+            throw new InsufficientStockException("Not enough stock for product: " + product.getName());
         }
 
         product.setStockAmount(product.getStockAmount() - item.quantity());

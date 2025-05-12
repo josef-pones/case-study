@@ -1,6 +1,8 @@
 package com.rohlikgroup.casestudy.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -8,7 +10,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.rohlikgroup.casestudy.dto.CreateOrderRequest;
+import com.rohlikgroup.casestudy.dto.ErrorResponseDto;
 import com.rohlikgroup.casestudy.dto.OrderDto;
+import com.rohlikgroup.casestudy.exception.InsufficientStockException;
 import com.rohlikgroup.casestudy.service.OrderService;
 
 import lombok.RequiredArgsConstructor;
@@ -36,5 +40,10 @@ public class OrderController {
     public ResponseEntity<OrderDto> createOrder(@RequestParam CreateOrderRequest orderRequest) {
         OrderDto order = orderService.createOrder(orderRequest);
         return ResponseEntity.accepted().body(order);
+    }
+
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<ErrorResponseDto> handleInsufficientStockException(InsufficientStockException ex) {
+        return ResponseEntity.ofNullable(new ErrorResponseDto(HttpStatus.NOT_FOUND, "INSUFFICIENT_STOCK", ex.getMessage()));
     }
 }

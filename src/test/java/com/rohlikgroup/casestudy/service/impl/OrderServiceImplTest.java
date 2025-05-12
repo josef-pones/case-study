@@ -4,20 +4,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import com.rohlikgroup.casestudy.dto.CreateOrderRequest;
 import com.rohlikgroup.casestudy.dto.OrderDto;
@@ -29,22 +27,18 @@ import com.rohlikgroup.casestudy.repository.ProductRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 
+@SpringBootTest
 @ExtendWith(MockitoExtension.class)
 class OrderServiceImplTest {
 
-    @Mock
+    @MockitoBean
     private OrderRepository orderRepository;
 
-    @Mock
+    @MockitoBean
     private ProductRepository productRepository;
 
-    @InjectMocks
+    @Autowired
     private OrderServiceImpl orderService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
 
     @Test
     void testCreateOrder_Success() {
@@ -58,7 +52,7 @@ class OrderServiceImplTest {
 
         Order order = new Order();
 
-        when(productRepository.findById(anyLong())).thenReturn(Optional.of(product));
+        when(productRepository.findById(any())).thenReturn(Optional.of(product));
         when(orderRepository.save(any(Order.class))).thenReturn(order);
 
         OrderDto result = orderService.createOrder(orderRequest);
